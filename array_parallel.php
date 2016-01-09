@@ -1,22 +1,31 @@
 <?php
 
-class ArrayParallelThread extends Thread{
+class ArrayParallelThread extends \Thread{
+    public $exception = null;
     public function __construct(&$func){
         $this->func = $func;
     }
     public function run(){
-        $func = $this->func;
-        $this->result = $func($this->args);
+        try{
+            $func = $this->func;
+            $this->result = $func($this->args);
+        } catch (Exception $e) {
+            $this->exception = $e;
+        }
     }
 }
 
 function array_parallel(&$data , $func , $option = [])
 {
     $check_interval = 100;
-    $num_threads    = isset($option["num_threads"]) ? $option["num_threads"] : 4; 
+    $num_threads    = isset($option["num_threads"]) ? $option["num_threads"] : 4;
+    $initialize = (isset($option["initialize"]) ?
+                   $option["initialize"] :
+                   null);
     $reduce = (isset($option["reduce"]) ?
                $option["reduce"] :
                function(&$carry , &$thread){
+                   if(isset($threads->exception)) error_log($e);
                    $carry[$thread->getThreadId()] = $thread->result;
                });
     
@@ -40,6 +49,9 @@ function array_parallel(&$data , $func , $option = [])
         if(!$datum) break;
         $newThread = new ArrayParallelThread($func);
         $newThread->args = $datum;
+
+        $initialize and $initialize($newThread , $datum);
+        
         $newThread->start();
         $threadId = $newThread->getThreadId();
         $order[$key] = $threadId;
