@@ -1,5 +1,6 @@
 <?php
-include("../array_parallel.php");
+
+include(__DIR__."/../array_parallel.php");
 
 $data = [1,2,'333'=>3,4,"bbb"=>5,6,7,8];
 echo "origin:";
