@@ -31,10 +31,6 @@ class ArrayParallelThread extends \Thread{
  *                                 $thread 実行された各スレッドオブジェクト。下記のプロパティを利用できる。
  *                                         result 実行結果。
  *                                         exception 実行中に発生した例外。
- *                  initialize     スレッド処理開始前にinitializeで設定した callback 関数をスレッドオブジェクトに対して繰り返し適用する。
- *                                 void callback (Thread &$thread, mixed $datum )
- *                                 $thread 実行された各スレッドオブジェクト。
- *                                 $datum  $dataパラメータの各要素。
  * 
  **/
 
@@ -42,11 +38,9 @@ function array_parallel($data , $callback , $option = [])
 {
     $check_interval = 100;
     $num_threads    = isset($option["num_threads"]) ? $option["num_threads"] : 4;
-    $initialize = (isset($option["initialize"]) ?
-                   $option["initialize"] :
-                   function(&$thread , $args){
+    $initialize =  function(&$thread , $args){
                        $thread->args = $args;
-                   });
+                   };
     $reduce = (isset($option["reduce"]) ?
                $option["reduce"] :
                function(&$carry , &$thread){
@@ -72,7 +66,7 @@ function array_parallel($data , $callback , $option = [])
         }
         list($key, $datum) = each($data);
         $newThread = new ArrayParallelThread($callback);
-        $initialize($newThread , $datum);
+        $newThread->args = $args;
         
         $newThread->start();
         $threadId = $newThread->getThreadId();
