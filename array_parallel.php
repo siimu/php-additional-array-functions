@@ -53,9 +53,10 @@ function array_parallel($data , $callback , $option = [])
     $result  = null;
 
     $checkComplete = function($thread) use (&$threads , &$result, &$reduce){
-        if($thread->isRunning()) return;
+        if($thread->isRunning()) return false;
         $reduce($result , $thread);
         unset($threads[$thread->getThreadId()]);
+        return true;
     };
     
     while(1){
@@ -70,8 +71,10 @@ function array_parallel($data , $callback , $option = [])
         
         $newThread->start();
         $threadId = $newThread->getThreadId();
-        $order[$key] = $threadId;
         $threads[$threadId] = $newThread;
+
+        // ƒL[‚ÌŒ³‚Ì‡”Ô‚ğ•Û‘¶‚·‚é
+        $order[$key] = $threadId;
     }
     
     while ($threads) {
